@@ -5,6 +5,14 @@ namespace User.API.Data
 {
     public class UserContext : DbContext
     {
+        public DbSet<AppUser> AppUsers { get; set; }
+
+        public DbSet<UserProperty> UserProperties { get; set; }
+
+        public DbSet<UserTag> UserTags { get; set; }
+
+        public DbSet<BPFile> BpFiles { get; set; }
+
         public UserContext(DbContextOptions<UserContext> options) : base(options)
         {
 
