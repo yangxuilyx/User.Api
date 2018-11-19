@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using User.API.Data;
@@ -24,11 +25,28 @@ namespace User.API.Controllers
         public async Task<ActionResult<AppUser>> Get()
         {
             var user = await _userContext.AppUsers.AsNoTracking()
-                .Include(p=>p.Properties)
-                .FirstOrDefaultAsync(p=>p.Id == UserIdentity.UserId);
+                .Include(p => p.Properties)
+                .FirstOrDefaultAsync(p => p.Id == UserIdentity.UserId);
 
             if (user == null)
-                return NotFound();
+                throw new UserException($"错误的用户上下文Id：{UserIdentity.UserId}");
+
+            return user;
+        }
+
+        [HttpPatch]
+        public async Task<ActionResult<AppUser>> Patch([FromBody] JsonPatchDocument<AppUser> patch)
+        {
+            var user = await _userContext.AppUsers.FirstOrDefaultAsync(p => p.Id == UserIdentity.UserId);
+
+            patch.ApplyTo(user);
+
+            var userProperties = await _userContext.UserProperties.Where(p => p.AppUserId == UserIdentity.UserId).ToListAsync();
+
+            _userContext.UserProperties.RemoveRange(userProperties);
+
+            _userContext.Update(user);
+            await _userContext.SaveChangesAsync();
 
             return user;
         }
