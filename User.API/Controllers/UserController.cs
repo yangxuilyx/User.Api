@@ -50,5 +50,23 @@ namespace User.API.Controllers
 
             return user;
         }
+
+        [HttpPost]
+        [Route("check-or-create")]
+        public async Task<ActionResult> CheckOrCreate([FromForm]string phone)
+        {
+            var appUser = await _userContext.AppUsers.SingleOrDefaultAsync(u => u.PhoneNumber == phone);
+            if (appUser == null)
+            {
+                appUser = new AppUser()
+                {
+                    PhoneNumber = phone
+                };
+                _userContext.AppUsers.Add(appUser);
+
+                await _userContext.SaveChangesAsync();
+            }
+            return Ok(appUser.Id);
+        }
     }
 }

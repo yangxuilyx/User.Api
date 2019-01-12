@@ -32,6 +32,18 @@ namespace User.API
                     options.UseMySQL(Configuration.GetConnectionString("Default"));
                 });
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("跨域规则的名称", policy =>
+                {
+                    // 設定允許跨域的來源，有多個的話可以用 `,` 隔開
+                    policy.WithOrigins("http://localhost:3000", "http://127.0.0.1:80")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            });
+
             services.AddMvc(options =>
             {
                 options.Filters.Add<UserExceptionFilter>();
