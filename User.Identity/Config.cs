@@ -9,7 +9,7 @@ namespace User.Identity
         {
             return new ApiResource[]
             {
-                new ApiResource("api1","Api Resource"),
+                new ApiResource("gateway_api","Api Resource"),
             };
         }
 
@@ -27,7 +27,7 @@ namespace User.Identity
                         new Secret("secret".Sha256())
                     },
                     // 客户端有权访问的范围（Scopes）
-                    AllowedScopes = { "api1" }
+                    AllowedScopes = { "gateway_api" }
                 },
                 new Client()
                 {
@@ -42,7 +42,7 @@ namespace User.Identity
                         new Secret("secret".Sha256())
                     },
                     // 客户端有权访问的范围（Scopes）
-                    AllowedScopes = { "api1" },
+                    AllowedScopes = { "gateway_api" },
                     AllowOfflineAccess = true,
                 },
             };
