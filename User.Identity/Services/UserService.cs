@@ -4,20 +4,23 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DnsClient;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Resilience;
 using User.Identity.Dtos;
 
 namespace User.Identity.Services
 {
     public class UserService : IUserService
     {
-        private readonly string _userServiceUrl = "http://localhost:5001/";
+        private readonly string _userServiceUrl;
         private readonly IHttpClient _httpClient;
-        private ILogger<UserService> _logger;
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(HttpClient httpClient, IDnsQuery dnsQuery, IOptions<ServiceDiscoveryOptions> serviceOptions)
+        public UserService(IHttpClient httpClient, IDnsQuery dnsQuery, IOptions<ServiceDiscoveryOptions> serviceOptions, ILogger<UserService> logger)
         {
-             _httpClient = httpClient;
+            _httpClient = httpClient;
+            _logger = logger;
 
             var address = dnsQuery.ResolveService("service.consul", serviceOptions.Value.UserServiceName);
             var addressList = address.First().AddressList;
@@ -26,9 +29,6 @@ namespace User.Identity.Services
             var port = address.First().Port;
 
             _userServiceUrl = $"http://{host}:{port}/";
-
-            _httpClient = httpClient;
-            _logger = logger;
         }
 
         public async Task<int> CheckOrCreate(string phone)
