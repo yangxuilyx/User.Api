@@ -3,14 +3,14 @@
     {
       "DownstreamPathTemplate": "/api/user",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5001
-        }
-      ],
+
       "UpstreamPathTemplate": "/user",
       "UpstreamHttpMethod": [ "Get" ],
+
+      "ServiceName": "userapi",
+      "LoadBalancer": "LeastConnection",
+      "UseServiceDiscovery": true,
+
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "findbook",
         "AllowedScopes": []
@@ -30,6 +30,10 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost"
+    "BaseUrl": "https://localhost",
+    "ServiceDiscoveryProvider": {
+      "Host": "localhost",
+      "Port": 8500 
+    } 
   }
 }

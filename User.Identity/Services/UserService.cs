@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Resilience;
+using DnsClient;
+using Microsoft.Extensions.Options;
+using User.Identity.Dtos;
 
 namespace User.Identity.Services
 {
@@ -13,8 +15,18 @@ namespace User.Identity.Services
         private readonly IHttpClient _httpClient;
         private ILogger<UserService> _logger;
 
-        public UserService(IHttpClient httpClient, ILogger<UserService> logger)
+        public UserService(HttpClient httpClient, IDnsQuery dnsQuery, IOptions<ServiceDiscoveryOptions> serviceOptions)
         {
+             _httpClient = httpClient;
+
+            var address = dnsQuery.ResolveService("service.consul", serviceOptions.Value.UserServiceName);
+            var addressList = address.First().AddressList;
+
+            var host = addressList.Any() ? addressList.First().ToString() : address.First().HostName;
+            var port = address.First().Port;
+
+            _userServiceUrl = $"http://{host}:{port}/";
+
             _httpClient = httpClient;
             _logger = logger;
         }

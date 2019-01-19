@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using Ocelot.Provider.Consul;
 
 namespace Gateway.API
 {
@@ -29,9 +30,8 @@ namespace Gateway.API
                 o.ApiSecret = "secret";
                 o.RequireHttpsMetadata = false;
             });
-            ;
 
-            services.AddOcelot();
+            services.AddOcelot().AddConsul();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
