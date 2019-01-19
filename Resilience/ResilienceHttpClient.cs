@@ -40,13 +40,13 @@ namespace Resilience
         public async Task<HttpResponseMessage> PostAsync<T>(string url, T item, string authorizationToken = null, string requestId = null,
             string authorizationMethod = "Bearer")
         {
-            return await DoPostAsync(HttpMethod.Post, url, GetHttpRequestMessage(HttpMethod.Post, url, item), authorizationToken, requestId, authorizationMethod);
+            return await DoPostAsync(HttpMethod.Post, url, () => GetHttpRequestMessage(HttpMethod.Post, url, item), authorizationToken, requestId, authorizationMethod);
         }
 
         public async Task<HttpResponseMessage> PostAsync(string url, Dictionary<string, string> item, string authorizationToken = null, string requestId = null,
             string authorizationMethod = "Bearer")
         {
-            return await DoPostAsync(HttpMethod.Post, url, GetHttpRequestMessage(HttpMethod.Post, url, item), authorizationToken, requestId, authorizationMethod);
+            return await DoPostAsync(HttpMethod.Post, url, () => GetHttpRequestMessage(HttpMethod.Post, url, item), authorizationToken, requestId, authorizationMethod);
         }
 
         private HttpRequestMessage GetHttpRequestMessage<T>(HttpMethod method, string url, T item)
@@ -66,7 +66,7 @@ namespace Resilience
             };
         }
 
-        public Task<HttpResponseMessage> DoPostAsync(HttpMethod method, string url, HttpRequestMessage requestMessage, string authorizationToken, string requestId = null,
+        public Task<HttpResponseMessage> DoPostAsync(HttpMethod method, string url, Func<HttpRequestMessage> requestMessageAction, string authorizationToken, string requestId = null,
             string authorizationMethod = "Bearer")
         {
             if (method != HttpMethod.Post && method != HttpMethod.Put)
@@ -78,6 +78,7 @@ namespace Resilience
 
             return HttpInvoker(origin, async () =>
             {
+                var requestMessage = requestMessageAction();
 
                 SetAuthorizationHeader(requestMessage);
 

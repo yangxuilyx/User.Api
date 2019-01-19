@@ -50,10 +50,10 @@ namespace User.Identity.Infrastructure
                 Policy.Handle<HttpRequestException>().CircuitBreakerAsync(_exceptionCountAllowedBeforeBreaking,TimeSpan.FromMinutes(1),
                     (exception, duration) =>
                     {
-                        _logger.LogTrace("熔断器打开");
+                        _logger.LogWarning("熔断器打开");
                     }, () =>
                     {
-                        _logger.LogTrace("熔断器关闭");
+                        _logger.LogWarning("熔断器关闭");
                     })
             };
         }
