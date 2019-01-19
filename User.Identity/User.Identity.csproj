@@ -14,4 +14,8 @@
     <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Resilience\Resilience.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,9 +1,12 @@
 ﻿using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Resilience;
 using User.Identity.Authentication;
+using User.Identity.Infrastructure;
 using User.Identity.Services;
 
 namespace User.Identity
@@ -22,6 +25,19 @@ namespace User.Identity
             services.AddSingleton<HttpClient>(new HttpClient());
             services.AddScoped<IAuthService, TestAuthService>();
             services.AddScoped<IUserService, UserService>();
+
+            services.AddSingleton<ResilienceClientFactory>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<ResilienceHttpClient>>();
+                var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+                int retryCount = 5;
+                int exceptionCountAllowedBeforeBreaking = 5;
+
+                return new ResilienceClientFactory(logger, httpContextAccessor, retryCount, exceptionCountAllowedBeforeBreaking);
+            });
+
+            // 注册全局单例IHttpClient
+            services.AddSingleton<IHttpClient>(sp => sp.GetRequiredService<ResilienceClientFactory>().GetResilienceHttpClient());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,35 +1,51 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Resilience;
 
 namespace User.Identity.Services
 {
     public class UserService : IUserService
     {
         private readonly string _userServiceUrl = "http://localhost:5001/";
-        private HttpClient _httpClient;
+        private readonly IHttpClient _httpClient;
+        private ILogger<UserService> _logger;
 
-        public UserService(HttpClient httpClient)
+        public UserService(IHttpClient httpClient, ILogger<UserService> logger)
         {
             _httpClient = httpClient;
+            _logger = logger;
         }
 
         public async Task<int> CheckOrCreate(string phone)
         {
-            var formUrlEncodedContent = new FormUrlEncodedContent(new Dictionary<string, string>()
+            var form = new Dictionary<string, string>()
             {
                 {"phone", phone}
-            });
-            var response = await _httpClient.PostAsync(_userServiceUrl + "api/user/check-or-create", formUrlEncodedContent);
+            };
 
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var userId = await response.Content.ReadAsStringAsync();
+                var response = await _httpClient.PostAsync(_userServiceUrl + "api/user/check-or-create", form);
 
-                int.TryParse(userId, out int intUserId);
+                if (response.IsSuccessStatusCode)
+                {
+                    var userId = await response.Content.ReadAsStringAsync();
 
-                return intUserId;
+                    int.TryParse(userId, out int intUserId);
+
+                    return intUserId;
+                }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError("CheckOrCreate 在重试之后失败，" + ex.StackTrace);
+
+                throw ex;
+            }
+
 
             return 0;
         }
