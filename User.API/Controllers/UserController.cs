@@ -68,5 +68,39 @@ namespace User.API.Controllers
             }
             return Ok(appUser.Id);
         }
+
+        [HttpGet]
+        [Route("tags")]
+        public async Task<IActionResult> GetUserTags()
+        {
+            return Ok(await _userContext.UserTags.Where(u => u.UserId == UserIdentity.UserId).ToListAsync());
+        }
+
+
+        [HttpPost]
+        [Route("search")]
+        public async Task<IActionResult> Search(string phone)
+        {
+            return Ok(await _userContext.AppUsers.Include(p => p.Properties)
+                .SingleOrDefaultAsync(p => p.Id == UserIdentity.UserId));
+        }
+
+        [HttpPut]
+        [Route("tags")]
+        public async Task<IActionResult> UpdateUserTags([FromBody] List<string> tags)
+        {
+            var userTags = await _userContext.UserTags.Where(p=>p.UserId == UserIdentity.UserId).ToListAsync();
+
+            var newTags = tags.Except(userTags.Select(p=>p.Tag));
+
+            await _userContext.UserTags.AddRangeAsync(newTags.Select(p=>new UserTag()
+            {
+                UserId = UserIdentity.UserId,
+                Tag = p
+            }));
+            await _userContext.SaveChangesAsync();
+
+            return Ok();
+        }
     }
 }
