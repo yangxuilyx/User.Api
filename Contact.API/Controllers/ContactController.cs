@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Contact.API.Data;
 using Contact.API.Models;
 using Contact.API.Service;
+using Contact.API.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Contact.API.Controllers
@@ -21,6 +23,22 @@ namespace Contact.API.Controllers
             _contactApplyRequestRepository = contactApplyRequestRepository;
             _userService = userService;
             _contactRepository = contactRepository;
+        }
+
+        [HttpGet]
+        [Route("")]
+        public async Task<IActionResult> Get(CancellationToken cancellationToken)
+        {
+            return Ok(await _contactRepository.GetContactsAsync(UserIdentity.UserId, cancellationToken));
+        }
+
+        public async Task<IActionResult> TagContact([FromBody]TagContactInputViewModel viewModel, CancellationToken cancellationToken)
+        {
+            var result = await _contactRepository.TagContactAsync(UserIdentity.UserId, viewModel.ContactId, viewModel.Tags, cancellationToken);
+            if (!result)
+                return BadRequest();
+
+            return Ok();
         }
 
         /// <summary>

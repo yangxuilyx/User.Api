@@ -6,7 +6,6 @@ using Contact.API.Dtos;
 using Contact.API.Models;
 using Microsoft.EntityFrameworkCore.Internal;
 using MongoDB.Driver;
-using Contact = Contact.API.Models.Contact;
 
 namespace Contact.API.Data
 {
@@ -71,6 +70,24 @@ namespace Contact.API.Data
             var updateResult = await _contactContext.ContactBooks.UpdateOneAsync(filter, update, null, cancellationToken);
 
             return updateResult.MatchedCount == 1 && updateResult.MatchedCount == updateResult.ModifiedCount;
+        }
+
+        public async Task<List<Models.Contact>> GetContactsAsync(int userId, CancellationToken cancellationToken)
+        {
+            var contactBook = (await _contactContext.ContactBooks.FindAsync(p => p.UserId == userId, cancellationToken: cancellationToken)).FirstOrDefault();
+            return contactBook?.Contacts;
+        }
+
+        public async Task<bool> TagContactAsync(int userId, int contactId, List<string> tags, CancellationToken cancellationToken)
+        {
+            var filter = Builders<ContactBook>.Filter.And(Builders<ContactBook>.Filter.Eq(p => p.UserId, userId),
+                //Builders<ContactBook>.Filter.Eq(Contacts.UserId,contactId));
+                Builders<ContactBook>.Filter.ElemMatch(p => p.Contacts, p => p.UserId == contactId));
+
+            var update = Builders<ContactBook>.Update.Set("Contacts.$.Tags", tags);
+
+            var updateResult = await _contactContext.ContactBooks.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
+            return updateResult.MatchedCount == updateResult.ModifiedCount;
         }
     }
 }
